@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -14,28 +13,16 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
-    public TextMeshProUGUI _bestScoreText;
+    public TextMeshProUGUI bestScoreText;
 
     private bool m_Started = false;
     private int m_Points;
 
     private bool m_GameOver = false;
 
-    private string saveFilePath;
-
-    public struct Data
+    private void Start()
     {
-        public int points;
-    }
-
-    private Data bestScoreData;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        saveFilePath = Path.Combine(Application.persistentDataPath, "savefile.json");
-
-        LoadData();
+        bestScoreText.text = GameManager.Instance.GetBestScoreText();
 
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
@@ -88,31 +75,11 @@ public class MainManager : MonoBehaviour
         m_GameOver = true;
         GameOverText.SetActive(true);
 
-        if (m_Points > bestScoreData.points)
+        if (m_Points > GameManager.Instance.BestScore)
         {
-            bestScoreData.points = m_Points;
-            SaveData();
+            GameManager.Instance.BestScore = m_Points;
+            GameManager.Instance.BestPlayerName = GameManager.Instance.CurrentPlayerName;
+            GameManager.Instance.SaveData();
         }
-    }
-
-    private void SaveData()
-    {
-        string json = JsonUtility.ToJson(bestScoreData);
-        File.WriteAllText(saveFilePath, json);
-    }
-
-    private void LoadData()
-    {
-        if (File.Exists(saveFilePath))
-        {
-            string json = File.ReadAllText(saveFilePath);
-            bestScoreData = JsonUtility.FromJson<Data>(json);
-        }
-        else
-        {
-            bestScoreData = new Data { points = 0 };
-        }
-
-        _bestScoreText.text = $"Best Score : Name : {bestScoreData.points}";
     }
 }
